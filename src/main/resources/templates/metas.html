@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head th:replace="~{fragments/layout :: head('Mis metas')}"></head>
+<body>
+<main class="app">
+    <div class="page-head">
+        <h1>Mis metas</h1>
+        <p th:text="'Hola, ' + ${nombre}"></p>
+    </div>
+
+    <p class="hp-msg" th:text="${mensaje}"></p>
+
+    <div class="section-title" th:text="${metaEditar != null} ? 'Editar meta' : 'Nueva meta'"></div>
+    <form class="hp-card" method="post"
+          th:action="${metaEditar != null} ? @{/metas/{id}/editar(id=${metaEditar.idMeta})} : @{/metas}">
+        <label class="form-label">Tipo de meta</label>
+        <select class="form-select mb-3" name="tipo">
+            <option value="">Selecciona</option>
+            <option value="Bajar de peso"
+                    th:selected="${metaEditar != null and metaEditar.tipo == 'Bajar de peso'}">Bajar de peso</option>
+            <option value="Subir de peso"
+                    th:selected="${metaEditar != null and metaEditar.tipo == 'Subir de peso'}">Subir de peso</option>
+            <option value="Días de ejercicio por semana"
+                    th:selected="${metaEditar != null and metaEditar.tipo == 'Días de ejercicio por semana'}">Días de ejercicio por semana</option>
+        </select>
+
+        <label class="form-label">Valor objetivo (kg o días)</label>
+        <input class="form-control mb-3" type="number" step="0.1" name="valor"
+               th:value="${metaEditar != null} ? ${metaEditar.valorObjetivo} : ''">
+
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label">Inicio</label>
+                <input class="form-control" type="date" name="fechaInicio"
+                       th:value="${metaEditar != null} ? ${metaEditar.fechaInicio} : ''">
+            </div>
+            <div class="col-6">
+                <label class="form-label">Fin</label>
+                <input class="form-control" type="date" name="fechaFin"
+                       th:value="${metaEditar != null} ? ${metaEditar.fechaFin} : ''">
+            </div>
+        </div>
+
+        <button class="btn btn-success w-100" type="submit"
+                th:text="${metaEditar != null} ? 'Guardar cambios' : 'Crear meta'"></button>
+        <a class="btn btn-link w-100 mt-1" th:if="${metaEditar != null}" href="/metas">Cancelar</a>
+    </form>
+
+    <div class="section-title">Mis metas</div>
+    <p class="hp-sub" th:if="${metas.isEmpty()}">Aún no tienes metas. Crea la primera arriba.</p>
+
+    <div class="hp-card" th:each="m : ${metas}">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="hp-title" th:text="${m.tipo} + ': ' + ${m.valorObjetivo}"></div>
+            <span class="badge bg-success" th:text="${m.estado}"></span>
+        </div>
+        <div class="hp-sub" th:text="${m.fechaInicio} + ' hasta ' + ${m.fechaFin}"></div>
+        <div class="d-flex gap-2 mt-3">
+            <a class="btn btn-sm btn-outline-success flex-grow-1"
+               th:href="@{/metas/{id}/editar(id=${m.idMeta})}">Editar</a>
+            <form class="flex-grow-1" method="post" th:action="@{/metas/{id}/eliminar(id=${m.idMeta})}">
+                <button class="btn btn-sm btn-outline-danger w-100" type="submit">Eliminar</button>
+            </form>
+        </div>
+    </div>
+</main>
+<nav th:replace="~{fragments/layout :: nav('metas')}"></nav>
+</body>
+</html>

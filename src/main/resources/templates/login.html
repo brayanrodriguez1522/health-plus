@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head th:replace="~{fragments/layout :: head('Iniciar sesión')}"></head>
+<body class="sin-nav">
+<div class="auth">
+    <!-- Panel de marca (izquierda, solo en computador) -->
+    <aside th:replace="~{fragments/layout :: marca}"></aside>
+
+    <!-- Formulario (derecha) -->
+    <main class="auth-main">
+        <div class="tema-auth"><button th:replace="~{fragments/layout :: tema}"></button></div>
+        <div class="auth-box">
+            <div class="auth-logo-movil">
+                <img th:src="@{/img/logo.png}" alt="Logo HEALTH+">
+                <span class="marca-texto">HEALTH<span>+</span></span>
+            </div>
+
+            <h1>Bienvenido de nuevo</h1>
+            <p class="lead-sub">Entra para ver tu plan de hoy y tu progreso.</p>
+
+            <!-- 1) Mensajes -->
+            <p class="hp-error" th:if="${error}"><i class="bi bi-exclamation-circle"></i><span th:text="${error}"></span></p>
+            <p class="hp-msg" th:if="${mensaje}"><i class="bi bi-check-circle"></i><span th:text="${mensaje}"></span></p>
+
+            <!-- 2) Entrar con redes sociales -->
+            <div th:replace="~{fragments/layout :: social}"></div>
+
+            <div class="separador">o con tu correo</div>
+
+            <!-- 3) Entrar con correo y contraseña.
+                 th:action (y no action) hace que Thymeleaf agregue el token de seguridad CSRF -->
+            <form th:action="@{/login}" method="post">
+                <label class="form-label" for="correo">Correo electrónico</label>
+                <div class="input-icono mb-3">
+                    <i class="bi bi-envelope"></i>
+                    <input class="form-control" id="correo" type="email" name="correo" th:value="${correo}"
+                           placeholder="tu@correo.com" autocomplete="email" required>
+                </div>
+                <label class="form-label" for="contrasena">Contraseña</label>
+                <div class="input-icono mb-4">
+                    <i class="bi bi-lock"></i>
+                    <input class="form-control" id="contrasena" type="password" name="contrasena"
+                           placeholder="••••••••" autocomplete="current-password" required>
+                    <button class="ver-clave" type="button" aria-label="Ver contraseña"><i class="bi bi-eye"></i></button>
+                </div>
+                <button class="btn btn-success w-100" type="submit">Iniciar sesión <i class="bi bi-arrow-right ms-1"></i></button>
+            </form>
+
+            <!-- 4) Ir a crear cuenta -->
+            <p class="auth-foot">¿Aún no tienes cuenta? <a href="/registro">Crear cuenta gratis</a></p>
+            <p class="auth-legal">Al continuar aceptas el uso de tus datos solo con fines académicos.</p>
+        </div>
+    </main>
+</div>
+<script th:replace="~{fragments/layout :: ver-clave}"></script>
+</body>
+</html>

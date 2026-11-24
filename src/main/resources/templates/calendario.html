@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head th:replace="~{fragments/layout :: head('Calendario')}"></head>
+<body>
+<main class="app">
+    <div class="page-head">
+        <h1>Mi calendario</h1>
+        <p th:text="'Semana del ' + ${rango}"></p>
+    </div>
+
+    <div class="hp-card d-flex justify-content-between align-items-center py-2">
+        <a class="btn btn-sm btn-outline-success" th:if="${semana > -4}"
+           th:href="@{/calendario(semana=${semana - 1})}"><i class="bi bi-chevron-left"></i></a>
+        <span th:if="${semana <= -4}" style="width:40px"></span>
+        <a class="fw-bold text-decoration-none" th:href="@{/calendario}">Esta semana</a>
+        <a class="btn btn-sm btn-outline-success" th:if="${semana < 4}"
+           th:href="@{/calendario(semana=${semana + 1})}"><i class="bi bi-chevron-right"></i></a>
+        <span th:if="${semana >= 4}" style="width:40px"></span>
+    </div>
+
+    <p class="hp-msg" th:text="${mensaje}"></p>
+
+    <div class="hp-card" th:each="d : ${dias}" th:classappend="${d.hoy} ? 'hoy'">
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="dia-fecha" th:text="${d.dia} + ' ' + ${d.fechaCorta}"></span>
+            <span class="badge bg-success" th:if="${d.hoy}">Hoy</span>
+        </div>
+        <div class="dia-descanso mt-1" th:if="${d.rutina == null}">Descanso</div>
+        <div th:if="${d.rutina != null}">
+            <a class="stretched-link text-decoration-none hp-title" style="color:var(--hp-ink)"
+               th:href="@{/plan/{f}(f=${d.fecha})}" th:text="${d.rutina}"></a>
+            <div class="progress mt-2" style="height: 8px;">
+                <div class="progress-bar bg-success" th:style="'width:' + ${d.porcentaje} + '%'"></div>
+            </div>
+            <div class="hp-sub mt-1" th:text="${d.hechos} + ' de ' + ${d.total} + ' ejercicios'"></div>
+        </div>
+    </div>
+</main>
+<nav th:replace="~{fragments/layout :: nav('calendario')}"></nav>
+</body>
+</html>

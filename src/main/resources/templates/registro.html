@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head th:replace="~{fragments/layout :: head('Crear cuenta')}"></head>
+<body class="sin-nav">
+<div class="auth">
+    <aside th:replace="~{fragments/layout :: marca}"></aside>
+
+    <main class="auth-main">
+        <div class="tema-auth"><button th:replace="~{fragments/layout :: tema}"></button></div>
+        <div class="auth-box">
+            <div class="auth-logo-movil">
+                <img th:src="@{/img/logo.png}" alt="Logo HEALTH+">
+                <span class="marca-texto">HEALTH<span>+</span></span>
+            </div>
+
+            <!-- Pasos del registro -->
+            <div class="pasos">
+                <div class="on"><div class="barra"></div><small>1 · Tus datos</small></div>
+                <div><div class="barra"></div><small>2 · Verifica tu correo</small></div>
+                <div><div class="barra"></div><small>3 · ¡Listo!</small></div>
+            </div>
+
+            <h1>Crea tu cuenta</h1>
+            <p class="lead-sub">En un minuto tienes tu plan semanal listo.</p>
+
+            <p class="hp-error" th:if="${error}"><i class="bi bi-exclamation-circle"></i><span th:text="${error}"></span></p>
+
+            <div th:replace="~{fragments/layout :: social}"></div>
+            <div class="separador">o con tu correo</div>
+
+            <form th:action="@{/registro}" method="post">
+                <label class="form-label" for="nombre">Nombre completo</label>
+                <div class="input-icono mb-3">
+                    <i class="bi bi-person"></i>
+                    <input class="form-control" id="nombre" type="text" name="nombre" th:value="${nombre}"
+                           placeholder="¿Cómo te llamas?" autocomplete="name" maxlength="100" required>
+                </div>
+
+                <label class="form-label" for="correo">Correo electrónico</label>
+                <div class="input-icono mb-3">
+                    <i class="bi bi-envelope"></i>
+                    <input class="form-control" id="correo" type="email" name="correo" th:value="${correo}"
+                           placeholder="tu@correo.com" autocomplete="email" required>
+                </div>
+
+                <label class="form-label" for="contrasena">Contraseña</label>
+                <div class="input-icono mb-3">
+                    <i class="bi bi-lock"></i>
+                    <input class="form-control" id="contrasena" type="password" name="contrasena"
+                           placeholder="Mínimo 8 caracteres" autocomplete="new-password" required>
+                    <button class="ver-clave" type="button" aria-label="Ver contraseña"><i class="bi bi-eye"></i></button>
+                </div>
+                <ul class="reglas" id="reglas">
+                    <li data-regla="largo"><i class="bi bi-circle"></i>8+ caracteres</li>
+                    <li data-regla="letra"><i class="bi bi-circle"></i>Una letra</li>
+                    <li data-regla="numero"><i class="bi bi-circle"></i>Un número</li>
+                </ul>
+
+                <label class="form-label" for="confirmar">Confirmar contraseña</label>
+                <div class="input-icono mb-4">
+                    <i class="bi bi-shield-check"></i>
+                    <input class="form-control" id="confirmar" type="password" name="confirmar"
+                           placeholder="Repite la contraseña" autocomplete="new-password" required>
+                </div>
+
+                <button class="btn btn-success w-100" type="submit">Enviar código a mi correo <i class="bi bi-send ms-1"></i></button>
+            </form>
+
+            <p class="auth-foot">¿Ya tienes cuenta? <a href="/">Iniciar sesión</a></p>
+        </div>
+    </main>
+</div>
+<script th:replace="~{fragments/layout :: ver-clave}"></script>
+<script>
+    // Marca en verde cada regla de la contraseña mientras la persona escribe
+    (function () {
+        var input = document.getElementById('contrasena');
+        var reglas = {
+            largo: function (v) { return v.length >= 8; },
+            letra: function (v) { return /[A-Za-z]/.test(v); },
+            numero: function (v) { return /\d/.test(v); }
+        };
+        input.addEventListener('input', function () {
+            document.querySelectorAll('#reglas li').forEach(function (li) {
+                var ok = reglas[li.dataset.regla](input.value);
+                li.classList.toggle('ok', ok);
+                li.querySelector('i').className = ok ? 'bi bi-check-circle-fill' : 'bi bi-circle';
+            });
+        });
+    })();
+</script>
+</body>
+</html>

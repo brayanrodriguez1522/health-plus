@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head th:replace="~{fragments/layout :: head('Rutinas')}"></head>
+<body>
+<main class="app">
+    <div class="page-head">
+        <h1>Elige tu plan semanal</h1>
+        <p th:text="'Hola, ' + ${nombre}"></p>
+    </div>
+
+    <div class="hp-stat" th:if="${imc != null}">
+        <div class="lbl">Tu IMC es <strong th:text="${imc}"></strong>, te sugerimos</div>
+        <div class="num" style="font-size:1.5rem" th:text="${sugerida}"></div>
+        <div class="lbl mt-2">El IMC es solo una referencia general: no distingue entre músculo y grasa.</div>
+    </div>
+    <div class="hp-note" th:if="${imc == null}">
+        Completa tu perfil físico para recibir una sugerencia.
+        <a href="/perfil">Ir a mi perfil</a>
+    </div>
+
+    <div class="section-title">Categoría</div>
+    <div class="chips">
+        <a th:each="c : ${categorias}" th:text="${c}" th:href="@{/rutinas(categoria=${c})}"
+           th:classappend="${c == activa} ? 'activo'"></a>
+    </div>
+
+    <p class="hp-msg" th:text="${mensaje}"></p>
+
+    <div class="hp-card" th:each="d : ${semana}">
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="hp-title" th:text="${d.dia}"></span>
+            <span class="dia-descanso" th:if="${d.rutina == null}">Descanso</span>
+            <span class="badge bg-success" th:if="${d.rutina != null}" th:text="${d.rutina}"></span>
+        </div>
+        <ul class="hp-sub mb-0 mt-2 ps-3" th:if="${d.rutina != null}">
+            <li th:each="e : ${d.ejercicios}" th:text="${e}"></li>
+        </ul>
+    </div>
+
+    <form method="post" th:action="@{/rutinas/elegir}" class="mt-3">
+        <input type="hidden" name="categoria" th:value="${activa}">
+        <button class="btn btn-success w-100" type="submit">Elegir este plan semanal</button>
+    </form>
+
+    <p class="hp-sub mt-3">
+        Rutinas de ejemplo para el MVP. Si sientes dolor, para y consulta a un profesional.
+    </p>
+</main>
+<nav th:replace="~{fragments/layout :: nav('rutinas')}"></nav>
+</body>
+</html>

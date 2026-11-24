@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head th:replace="~{fragments/layout :: head('Ejercicio')}"></head>
+<body>
+<main class="app">
+    <a class="btn btn-sm btn-outline-success mb-3" th:href="${volver}"><i class="bi bi-arrow-left"></i> Volver</a>
+
+    <div class="hp-note" th:if="${ejercicio == null}" th:text="${mensaje}"></div>
+
+    <div th:if="${ejercicio != null}">
+        <div class="page-head">
+            <h1 th:text="${ejercicio.nombre}"></h1>
+            <div class="mt-2">
+                <span class="badge bg-secondary" th:text="${ejercicio.grupoMuscular}"></span>
+                <span class="badge bg-success"><i class="bi bi-clock"></i>
+                    <span th:text="${ejercicio.duracionMin} + ' min'"></span></span>
+            </div>
+        </div>
+        <div class="hp-card">
+            <div class="section-title mt-0">Cómo hacerlo</div>
+            <p class="mb-0" th:text="${ejercicio.descripcion}"></p>
+        </div>
+    </div>
+</main>
+<nav th:replace="~{fragments/layout :: nav('plan')}"></nav>
+</body>
+</html>

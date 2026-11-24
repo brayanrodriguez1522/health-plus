@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<!-- Página de inicio (después del login)
+     Datos: InicioController + ProgresoService     Estilos: css/inicio.css
+      -->
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
+<body>
+<main class="app ancha inicio">
+
+    <!-- 1. Saludo -->
+    <header class="ini-hero">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/perfil" class="avatar" title="Mi perfil">
+                <img th:if="${usuario.fotoUrl}" th:src="${usuario.fotoUrl}" alt="" referrerpolicy="no-referrer">
+                <span th:unless="${usuario.fotoUrl}" th:text="${usuario.iniciales}">JH</span>
+            </a>
+            <div>
+                <p class="ini-fecha" th:text="${fechaHoy}">Miércoles, 18 de noviembre</p>
+                <h1><span th:text="${saludo}">Buenas tardes</span>, <span th:text="${primerNombre}">Jonathan</span></h1>
+            </div>
+        </div>
+        <div class="ini-racha" th:classappend="${racha > 0} ? 'encendida'">
+            <i class="bi bi-fire"></i>
+            <div><b th:text="${racha}">0</b><small th:text="${racha == 1} ? 'día de racha' : 'días de racha'">días de racha</small></div>
+        </div>
+    </header>
+
+    <p class="hp-msg" th:if="${bienvenida}"><i class="bi bi-stars"></i>
+        <span>¡Tu cuenta quedó creada! Completa tu perfil físico para recomendarte el mejor plan.</span></p>
+
+    <!-- Aviso si falta el perfil físico (sin él no hay IMC ni recomendación) -->
+    <a class="ini-aviso" th:if="${perfil == null}" href="/perfil#fisico">
+        <i class="bi bi-person-vcard"></i>
+        <div><b>Completa tu perfil físico</b><span>Con tu peso y estatura calculamos tu IMC y te sugerimos una rutina.</span></div>
+        <i class="bi bi-chevron-right ms-auto"></i>
+    </a>
+
+    <div class="ini-grid">
+
+        <!-- 2. Entrenamiento de hoy (anillo de progreso) -->
+        <section class="hp-card ini-hoy ini-c7">
+            <div class="ini-hoy-texto">
+                <span class="ini-etiqueta"><i class="bi bi-lightning-charge-fill"></i> Entrenamiento de hoy</span>
+                <th:block th:if="${hoy.total > 0}">
+                    <h2 th:text="${hoy.rutina}">Pecho y brazos</h2>
+                    <p class="hp-sub" th:text="${hoy.hechos} + ' de ' + ${hoy.total} + ' ejercicios · ~' + ${hoy.minutos} + ' min'"></p>
+                    <a class="btn btn-success" href="/plan/hoy"
+                       th:text="${hoy.terminado} ? 'Ver lo que hiciste' : (${hoy.hechos > 0} ? 'Continuar entrenamiento' : 'Empezar ahora')">Empezar ahora</a>
+                    <p class="ini-felicitacion" th:if="${hoy.terminado}"><i class="bi bi-trophy-fill"></i> ¡Día completado! Descansa y repón agua.</p>
+                </th:block>
+                <th:block th:if="${hoy.total == 0}">
+                    <h2>Día libre</h2>
+                    <p class="hp-sub">No tienes ejercicios para hoy. Elige un plan semanal o aprovecha para descansar.</p>
+                    <a class="btn btn-success" href="/rutinas">Elegir mi plan</a>
+                </th:block>
+            </div>
+            <!-- Anillo SVG: el círculo menta se "dibuja" según el porcentaje (stroke-dashoffset) -->
+            <div class="anillo-progreso">
+                <svg viewBox="0 0 120 120">
+                    <defs><linearGradient id="gradMenta" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#3ee6be"/><stop offset="1" stop-color="#14b8a6"/></linearGradient></defs>
+                    <circle cx="60" cy="60" r="52" class="fondo"/>
+                    <circle cx="60" cy="60" r="52" class="valor" th:style="'stroke-dashoffset:' + ${hoy.offsetAnillo}"/>
+                </svg>
+                <div class="centro"><b th:text="${hoy.porcentaje} + '%'">0%</b><small>completado</small></div>
+            </div>
+        </section>
+
+        <!-- 3. Números rápidos -->
+        <section class="ini-stats ini-c5">
+            <div class="hp-card stat s-menta">
+                <i class="bi bi-check2-circle"></i>
+                <b th:text="${hechosSemana}">0</b><small>ejercicios esta semana</small>
+            </div>
+            <div class="hp-card stat s-violeta">
+                <i class="bi bi-stopwatch"></i>
+                <b th:text="${minutosSemana}">0</b><small>minutos activos</small>
+            </div>
+            <div class="hp-card stat s-ambar">
+                <i class="bi bi-award"></i>
+                <b th:text="${hechosTotal}">0</b><small>ejercicios en total</small>
+            </div>
+            <a class="hp-card stat s-cielo" href="/perfil#fisico">
+                <i class="bi bi-heart-pulse"></i>
+                <b th:text="${perfil != null} ? ${perfil.imc} : '—'">—</b>
+                <small th:text="${categoriaImc != null} ? 'IMC · ' + ${categoriaImc} : 'IMC (completa tu perfil)'">IMC</small>
+            </a>
+        </section>
+
+        <!-- 4. Gráfica de la semana -->
+        <section class="hp-card ini-c7">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="ini-h3">Tu semana</h3>
+                <a class="ini-link" href="/calendario">Ver calendario <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="barras">
+                <div class="col-barra" th:each="b : ${semana}" th:classappend="${b.hoy} ? 'hoy'"
+                     th:title="${b.dia} + ': ' + (${b.conPlan} ? ${b.porcentaje} + '%' : 'descanso')">
+                    <span class="pct" th:text="${b.conPlan} ? ${b.porcentaje} + '%' : ''"></span>
+                    <div class="pista"><div class="relleno" th:classappend="${b.porcentaje > 0} ? '' : 'vacio'"
+                                            th:style="'height:' + ${b.altura} + '%'"></div></div>
+                    <span class="letra" th:text="${b.letra}">L</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Metas -->
+        <section class="hp-card ini-c5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="ini-h3">Mis metas</h3>
+                <a class="ini-link" href="/metas">Gestionar <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div th:if="${metas.isEmpty()}" class="ini-vacio">
+                <i class="bi bi-bullseye"></i>
+                <p>Aún no tienes metas activas.</p>
+                <a class="btn btn-sm btn-outline-success" href="/metas">Crear mi primera meta</a>
+            </div>
+            <div class="meta" th:each="mv : ${metas}">
+                <div class="meta-icono"><i class="bi" th:classappend="${mv.icono}"></i></div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between">
+                        <b th:text="${mv.meta.tipo}">Bajar de peso</b>
+                        <span class="hp-sub" th:text="${mv.diasRestantes} + ' días'">30 días</span>
+                    </div>
+                    <small class="hp-sub" th:text="'Objetivo: ' + ${mv.meta.valorObjetivo} + ' ' + ${mv.unidad}"></small>
+                    <div class="progress mt-2" style="height:6px">
+                        <div class="progress-bar bg-success" th:style="'width:' + ${mv.avanceTiempo} + '%'"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 6. Explorar rutinas -->
+    <div class="d-flex justify-content-between align-items-end">
+        <div>
+            <div class="section-title mb-1">Explora rutinas</div>
+            <p class="hp-sub mb-3">Planes de 5 días para hacer en casa, sin máquinas.</p>
+        </div>
+    </div>
+    <div class="programas">
+        <a class="programa" th:each="p : ${programas}" th:classappend="${p.estilo}"
+           th:href="@{/rutinas(categoria=${p.categoria})}">
+            <span class="reco" th:if="${p.recomendado}"><i class="bi bi-star-fill"></i> Recomendada para ti</span>
+            <div class="programa-icono"><i class="bi" th:classappend="${p.icono}"></i></div>
+            <h4 th:text="${p.titulo}">Equilibrio total</h4>
+            <p th:text="${p.descripcion}"></p>
+            <div class="programa-tags">
+                <span th:each="e : ${p.enfoque}" th:text="${e}"></span>
+            </div>
+            <div class="programa-pie">
+                <span><i class="bi bi-calendar-week"></i> <b th:text="${p.dias}">5</b> días</span>
+                <span><i class="bi bi-list-check"></i> <b th:text="${p.ejercicios}">24</b> ejercicios</span>
+                <span class="ms-auto ver">Ver plan <i class="bi bi-arrow-right"></i></span>
+            </div>
+            <small class="programa-cat" th:text="'Para: ' + ${p.categoria}"></small>
+        </a>
+    </div>
+
+    <!-- 7. Consejo del día -->
+    <section class="ini-tip">
+        <i class="bi bi-lightbulb"></i>
+        <div><b>Consejo del día</b><p th:text="${tip}"></p></div>
+    </section>
+</main>
+<nav th:replace="~{fragments/layout :: nav('inicio')}"></nav>
+</body>
+</html>

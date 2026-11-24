@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head th:replace="~{fragments/layout :: head('Verifica tu correo')}"></head>
+<body class="sin-nav">
+<div class="auth">
+    <aside th:replace="~{fragments/layout :: marca}"></aside>
+
+    <main class="auth-main">
+        <div class="tema-auth"><button th:replace="~{fragments/layout :: tema}"></button></div>
+        <div class="auth-box">
+            <div class="pasos">
+                <div class="on"><div class="barra"></div><small>1 · Tus datos</small></div>
+                <div class="on"><div class="barra"></div><small>2 · Verifica tu correo</small></div>
+                <div><div class="barra"></div><small>3 · ¡Listo!</small></div>
+            </div>
+
+            <div class="icono-correo"><i class="bi bi-envelope-paper-heart"></i></div>
+            <h1>Revisa tu correo</h1>
+            <p class="lead-sub">Escribe el código de 6 dígitos que enviamos a
+                <b style="color:var(--hp-ink)" th:text="${correoOculto}">co••••@gmail.com</b>.
+                Si no lo ves, mira en Spam o Promociones.</p>
+
+            <p class="hp-error" th:if="${error}"><i class="bi bi-exclamation-circle"></i><span th:text="${error}"></span></p>
+            <p class="hp-msg" th:if="${mensaje != null and codigoPrueba == null}"><i class="bi bi-check-circle"></i><span th:text="${mensaje}"></span></p>
+
+            <!-- MODO PRUEBA: solo aparece si NO hay correo configurado en secretos.properties -->
+            <!-- También aparece si el correo SÍ está configurado pero el envío falló (por ejemplo, un servidor que bloquea el correo) -->
+            <div class="modo-prueba" th:if="${modoPrueba or codigoPrueba != null}">
+                <i class="bi bi-info-circle"></i> <strong>Modo prueba:</strong>
+                <span th:if="${modoPrueba}">el envío de correos aún no está configurado, por eso el código sale aquí y en la consola de IntelliJ.</span>
+                <span th:unless="${modoPrueba}">no pudimos enviar el correo en este momento, así que aquí tienes tu código.</span>
+                <div th:if="${codigoPrueba}" class="mt-1">Tu código: <b th:text="${codigoPrueba}">000000</b></div>
+            </div>
+
+            <form th:action="@{/registro/verificar}" method="post" id="form-codigo">
+                <!-- 6 cajitas que el JavaScript junta en el campo oculto "codigo" -->
+                <div class="codigo">
+                    <input type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 1" autocomplete="one-time-code" autofocus>
+                    <input type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 2">
+                    <input type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 3">
+                    <input type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 4">
+                    <input type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 5">
+                    <input type="text" inputmode="numeric" maxlength="1" aria-label="Dígito 6">
+                </div>
+                <input type="hidden" name="codigo" id="codigo">
+                <button class="btn btn-success w-100" type="submit">Verificar y entrar <i class="bi bi-arrow-right ms-1"></i></button>
+            </form>
+
+            <form th:action="@{/registro/reenviar}" method="post" class="text-center mt-3">
+                <span class="text-muted">¿No te llegó?</span>
+                <button class="btn btn-link p-0 fw-bold align-baseline" type="submit">Reenviar código</button>
+            </form>
+            <p class="auth-foot"><a href="/registro"><i class="bi bi-arrow-left"></i> Cambiar mis datos</a></p>
+        </div>
+    </main>
+</div>
+<script>
+    // Lógica de las 6 cajitas: saltar a la siguiente, borrar hacia atrás y pegar el código completo
+    (function () {
+        var cajas = Array.prototype.slice.call(document.querySelectorAll('.codigo input'));
+        var oculto = document.getElementById('codigo');
+        function juntar() { oculto.value = cajas.map(function (c) { return c.value; }).join(''); }
+        cajas.forEach(function (caja, i) {
+            caja.addEventListener('input', function () {
+                caja.value = caja.value.replace(/\D/g, '').slice(0, 1);
+                if (caja.value && i < cajas.length - 1) cajas[i + 1].focus();
+                juntar();
+                if (oculto.value.length === 6) document.getElementById('form-codigo').submit();
+            });
+            caja.addEventListener('keydown', function (e) {
+                if (e.key === 'Backspace' && !caja.value && i > 0) cajas[i - 1].focus();
+            });
+            caja.addEventListener('paste', function (e) {
+                var txt = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+                if (!txt) return;
+                e.preventDefault();
+                txt.split('').forEach(function (d, k) { if (cajas[k]) cajas[k].value = d; });
+                juntar();
+                (cajas[txt.length] || cajas[cajas.length - 1]).focus();
+                if (oculto.value.length === 6) document.getElementById('form-codigo').submit();
+            });
+        });
+    })();
+</script>
+</body>
+</html>

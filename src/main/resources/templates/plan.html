@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head th:replace="~{fragments/layout :: head('Plan del día')}"></head>
+<body>
+<main class="app">
+    <div class="page-head">
+        <h1 th:text="${esHoy} ? 'Plan de hoy' : 'Plan del día'"></h1>
+        <p th:text="${fechaTexto}"></p>
+        <span class="badge bg-success mt-2" th:if="${nombreRutina != null}" th:text="${nombreRutina}"></span>
+    </div>
+
+    <div class="hp-card" th:if="${total > 0}">
+        <div class="d-flex justify-content-between mb-2">
+            <span class="hp-title">Tu progreso</span>
+            <span class="hp-title" style="color:var(--hp-mint)" th:text="${porcentaje} + '%'"></span>
+        </div>
+        <div class="progress" style="height: 12px;">
+            <div class="progress-bar bg-success" th:style="'width:' + ${porcentaje} + '%'"></div>
+        </div>
+        <div class="hp-sub mt-2" th:text="${hechos} + ' de ' + ${total} + ' ejercicios completados'"></div>
+    </div>
+
+    <p class="hp-msg" th:text="${mensaje}"></p>
+
+    <div class="hp-note" th:if="${total == 0}">
+        No hay plan para este día. Puede ser tu día de descanso o todavía no has elegido un plan.
+        <a href="/rutinas">Elegir una rutina</a>
+    </div>
+
+    <div class="hp-card" th:each="i : ${items}" th:classappend="${i.completado} ? 'hecho'">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <a class="hp-title text-decoration-none" style="color:var(--hp-ink)"
+               th:href="@{/ejercicio/{id}(id=${i.idEjercicio}, volver=${'/plan/' + fechaIso})}"
+               th:text="${i.nombre}"></a>
+            <span class="badge bg-secondary" th:text="${i.grupo}"></span>
+        </div>
+        <div class="hp-sub mb-3" th:text="${i.detalle}"></div>
+
+        <div class="d-flex gap-2">
+            <form class="flex-grow-1" method="post" th:action="@{/plan/{id}/completar(id=${i.idPlan})}">
+                <button class="btn w-100" type="submit"
+                        th:classappend="${i.completado} ? 'btn-success' : 'btn-outline-success'"
+                        th:text="${i.completado} ? '✔ Hecho' : 'Marcar como hecho'"></button>
+            </form>
+            <form method="post" th:action="@{/plan/{id}/cambiar(id=${i.idPlan})}">
+                <button class="btn btn-outline-secondary" type="submit" title="Cambiar ejercicio"
+                        aria-label="Cambiar ejercicio"><i class="bi bi-arrow-repeat"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <form method="post" th:if="${total > 0}" th:action="@{/plan/{f}/descanso(f=${fechaIso})}" class="mt-3">
+        <button class="btn btn-outline-danger w-100" type="submit">Saltar este día (descanso)</button>
+    </form>
+</main>
+<nav th:replace="~{fragments/layout :: nav('plan')}"></nav>
+</body>
+</html>

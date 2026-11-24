@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head th:replace="~{fragments/layout :: head('Mi perfil')}"></head>
+<body>
+<main class="app">
+
+    <!-- Encabezado "quién soy" -->
+    <div class="hp-card">
+        <div class="perfil-head">
+            <div class="avatar xl">
+                <img th:if="${usuario != null and usuario.fotoUrl != null}" th:src="${usuario.fotoUrl}" alt="" referrerpolicy="no-referrer">
+                <span th:if="${usuario == null or usuario.fotoUrl == null}" th:text="${usuario != null} ? ${usuario.iniciales} : '?'">JH</span>
+            </div>
+            <div class="flex-grow-1">
+                <h2 th:text="${usuario != null} ? ${usuario.nombre} : ${nombre}">Jonathan</h2>
+                <div class="hp-sub" th:if="${usuario != null}" th:text="${usuario.correo}">correo@gmail.com</div>
+                <div class="mt-2 d-flex gap-2 flex-wrap" th:if="${usuario != null}">
+                    <span class="badge bg-success">
+                        <i class="bi" th:classappend="${usuario.proveedor == 'Google'} ? 'bi-google' : (${usuario.proveedor == 'Facebook'} ? 'bi-facebook' : 'bi-envelope-check')"></i>
+                        <span th:text="'Cuenta con ' + ${usuario.proveedor}"></span></span>
+                    <span class="badge bg-secondary" th:text="'Desde ' + ${#temporals.format(usuario.fechaRegistro, 'dd/MM/yyyy')}"></span>
+                </div>
+            </div>
+        </div>
+        <!-- Menú interno de la página (salta a cada sección) -->
+        <nav class="perfil-tabs">
+            <a href="#fisico"><i class="bi bi-heart-pulse"></i> Datos físicos</a>
+            <a href="#cuenta"><i class="bi bi-person-gear"></i> Mi cuenta</a>
+            <a href="#seguridad"><i class="bi bi-shield-lock"></i> Seguridad</a>
+            <a href="#apariencia"><i class="bi bi-circle-half"></i> Apariencia</a>
+            <a href="/logout"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+        </nav>
+    </div>
+
+    <p class="hp-msg" th:if="${mensaje}"><i class="bi bi-check-circle"></i><span th:text="${mensaje}"></span></p>
+    <p class="hp-error" th:if="${error}"><i class="bi bi-exclamation-circle"></i><span th:text="${error}"></span></p>
+
+    <!-- Resumen físico (solo si ya estan llenos sus datos) -->
+    <div class="hp-card" th:if="${perfil != null}">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <div class="hp-sub">Tu índice de masa corporal (IMC)</div>
+                <div style="font-size:2.4rem;font-weight:800;letter-spacing:-.03em;line-height:1.1" th:text="${perfil.imc}">22.5</div>
+            </div>
+            <span class="badge bg-success" th:text="${perfil.categoriaImc}">Peso normal</span>
+        </div>
+        <div class="imc-escala"><div class="punto" th:style="'left:' + ${perfil.posicionImc} + '%'"></div></div>
+        <div class="imc-leyenda">
+            <span style="left:7%">Bajo</span><span style="left:27%">Normal</span>
+            <span style="left:50%">Sobrepeso</span><span style="left:80%">Obesidad</span>
+        </div>
+        <div class="datos-grid mt-3">
+            <div class="dato"><small>Peso</small><b th:text="${perfil.pesoKg} + ' kg'"></b></div>
+            <div class="dato"><small>Estatura</small><b th:text="${perfil.estaturaCm} + ' cm'"></b></div>
+            <div class="dato"><small>Edad</small><b th:text="${perfil.edad} + ' años'"></b></div>
+        </div>
+        <p class="hp-sub mt-3 mb-0">El IMC es una referencia general: no distingue entre músculo y grasa.</p>
+    </div>
+
+    <!-- Datos físicos (SCRUM-16) -->
+    <div class="section-title" id="fisico">Datos físicos</div>
+    <form class="hp-card" th:action="@{/perfil}" method="post">
+        <div class="row g-3">
+            <div class="col-6">
+                <label class="form-label">Peso (kg)</label>
+                <input class="form-control" type="number" step="0.1" name="peso" placeholder="Ej: 68.5"
+                       th:value="${perfil != null} ? ${perfil.pesoKg} : ''">
+            </div>
+            <div class="col-6">
+                <label class="form-label">Estatura (cm)</label>
+                <input class="form-control" type="number" step="0.1" name="estatura" placeholder="Ej: 172"
+                       th:value="${perfil != null} ? ${perfil.estaturaCm} : ''">
+            </div>
+            <div class="col-6">
+                <label class="form-label">Edad</label>
+                <input class="form-control" type="number" name="edad" placeholder="Ej: 20"
+                       th:value="${perfil != null} ? ${perfil.edad} : ''">
+            </div>
+            <div class="col-6">
+                <label class="form-label">Sexo</label>
+                <select class="form-select" name="sexo">
+                    <option value="">Selecciona</option>
+                    <option value="Femenino" th:selected="${perfil != null and perfil.sexo == 'Femenino'}">Femenino</option>
+                    <option value="Masculino" th:selected="${perfil != null and perfil.sexo == 'Masculino'}">Masculino</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-success w-100 mt-3" type="submit">Guardar datos físicos</button>
+    </form>
+
+    <th:block th:if="${usuario != null}">
+        <!-- Mi cuenta -->
+        <div class="section-title" id="cuenta">Mi cuenta</div>
+        <form class="hp-card" th:action="@{/perfil/cuenta}" method="post">
+            <label class="form-label">Nombre</label>
+            <input class="form-control mb-3" type="text" name="nombre" maxlength="100" th:value="${usuario.nombre}" required>
+            <label class="form-label">Correo (no se puede cambiar)</label>
+            <input class="form-control mb-3" type="email" th:value="${usuario.correo}" readonly>
+            <button class="btn btn-ghost w-100" type="submit">Guardar nombre</button>
+        </form>
+
+        <!-- Seguridad -->
+        <div class="section-title" id="seguridad">Seguridad</div>
+        <form class="hp-card" th:if="${usuario.cuentaLocal}" th:action="@{/perfil/contrasena}" method="post">
+            <label class="form-label">Contraseña actual</label>
+            <input class="form-control mb-3" type="password" name="actual" autocomplete="current-password" required>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nueva contraseña</label>
+                    <input class="form-control" type="password" name="nueva" autocomplete="new-password" placeholder="8+ con letras y números" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Confirmar nueva</label>
+                    <input class="form-control" type="password" name="confirmar" autocomplete="new-password" required>
+                </div>
+            </div>
+            <button class="btn btn-ghost w-100 mt-3" type="submit">Cambiar contraseña</button>
+        </form>
+        <div class="hp-card" th:unless="${usuario.cuentaLocal}">
+            <p class="mb-0 hp-sub"><i class="bi bi-shield-check text-mint"></i>
+                Entras con <b th:text="${usuario.proveedor}"></b>, así que tu contraseña la maneja
+                <span th:text="${usuario.proveedor}"></span>. No necesitas una contraseña en HEALTH+.</p>
+        </div>
+
+        <!-- Apariencia (se guarda en este navegador) -->
+        <div class="section-title" id="apariencia">Apariencia</div>
+        <div class="hp-card">
+            <div class="apariencia">
+                <button type="button" data-tema="dark" onclick="HPtema.cambiar('dark')"><i class="bi bi-moon-stars"></i>Oscuro</button>
+                <button type="button" data-tema="light" onclick="HPtema.cambiar('light')"><i class="bi bi-sun"></i>Claro</button>
+                <button type="button" data-tema="auto" onclick="HPtema.cambiar('auto')"><i class="bi bi-circle-half"></i>Automático</button>
+            </div>
+            <p class="hp-sub mt-2 mb-0">"Automático" usa el modo que tenga tu computador o celular.</p>
+        </div>
+
+        <a class="btn btn-outline-secondary w-100 mb-2" href="/logout"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+
+        <!-- Zona de peligro -->
+        <div class="section-title" id="peligro">Zona de peligro</div>
+        <form class="hp-card zona-peligro" th:action="@{/perfil/eliminar}" method="post">
+            <p class="hp-sub">Se borrará tu cuenta, tus datos físicos, tus metas y tu plan. No se puede deshacer.</p>
+            <label class="form-label">Escribe <b>ELIMINAR</b> para confirmar</label>
+            <input class="form-control mb-3" type="text" name="confirmacion" autocomplete="off">
+            <button class="btn btn-outline-danger w-100" type="submit">Eliminar mi cuenta</button>
+        </form>
+    </th:block>
+</main>
+<nav th:replace="~{fragments/layout :: nav('perfil')}"></nav>
+</body>
+</html>
